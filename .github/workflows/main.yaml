@@ -1,0 +1,62 @@
+name: Development
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  # add a trigger for the push event
+  push:
+    branches:
+      - main
+
+
+jobs: build-test
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build project
+        run: npm run build
+
+      - name: Run tests
+        run: npm test
+      # add a step to checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v2
+      # add a step to install .NET SDK 7
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 7.0.100
+      # add a step to restore NuGet packages 
+      - name: Restore NuGet packages
+        run: dotnet restore
+      # add a step to build the solution
+      - name: Build solution
+        run: dotnet build
+      # add a step to publish src/WebApi
+      - name: Publish WebApi
+        run: dotnet publish src/WebApi -o ./publish
+      # add a step to login to Azure
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      # Deploy to Azure Web apps
+      - name: Azure WebApp Deploy
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'hg-code
